@@ -12,6 +12,8 @@ npm run dev
 
 The app runs at `http://localhost:5173`; the API runs at `http://localhost:4000`.
 
+The repository is npm-workspace compatible: run `npm install` from the repository root, then `npm run build`. Workspace packages have explicit versions, and the client build toolchain is installed as regular dependencies so hosts that omit development dependencies still have access to Vite during the build.
+
 Demo mode is enabled by default and uses a seeded in-memory repository. The Mongoose schemas in `server/src/models.ts` define the persistence boundary; wiring a production repository still requires MongoDB credentials and deployment configuration.
 
 The optional Eventra help section uses Gemini through the server. Set `GEMINI_API_KEY` in the server environment or GitHub Secrets; the key is never sent to the browser. `GEMINI_MODEL` defaults to `gemini-2.0-flash`.

@@ -1,5 +1,6 @@
 {
   "name": "eventra-event-booking",
+  "version": "0.1.0",
   "private": true,
   "workspaces": ["client", "server", "shared"],
   "scripts": {
