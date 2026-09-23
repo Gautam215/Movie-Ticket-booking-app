@@ -3,6 +3,7 @@ import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronRight, Circle
 import type { AdminSummary, Booking, EventDetails, EventSummary, Movie, User } from '@eventra/shared';
 import { api, ApiError } from './api';
 import MovieReel from './components/ui/movie-reel';
+import BlackHole from './components/ui/black-hole';
 import PrdEventView from './components/prd-event-view';
 import HelpSection from './components/help-section';
 import TicketWallet from './components/ticket-wallet';
@@ -86,10 +87,11 @@ export default function App() {
     void api.organizerEvents().then(result => setOrganizerEvents(result.data)).catch(error => { const message = errorMessage(error); setOrganizerError(message); setMessage(message); }).finally(() => setOrganizerLoading(false));
   }
 
-  if (loading) return <div className="app-loading"><div className="loader-orbit" /><p>Loading events...</p></div>;
+  if (loading) return <div className="app-loading"><BlackHole /><div className="app-loading-content"><div className="loader-orbit" /><p>Loading events...</p></div></div>;
 
   return (
     <div className={`app-shell ${view === 'auth' ? 'auth-shell' : ''}`} data-theme={theme}>
+       <BlackHole />
        {view !== 'auth' && <Header user={user} theme={theme} menuOpen={menuOpen} onToggleTheme={() => setTheme(current => current === 'dark' ? 'light' : 'dark')} onMenu={() => setMenuOpen(open => !open)} onNavigate={navigate} onRequireUser={requireUser} onSignOut={signOut} />}
       <main>
         {message && <div className="toast" role="status"><Sparkles size={16} />{message}<button aria-label="Dismiss message" onClick={() => setMessage('')}><X size={15} /></button></div>}
