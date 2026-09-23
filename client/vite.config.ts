@@ -8,4 +8,8 @@ export default defineConfig({
     port: 5173,
     proxy: { '/api': 'http://localhost:4000' },
   },
+  preview: {
+    host: '0.0.0.0',
+    allowedHosts: ['eventraclient-production.up.railway.app'],
+  },
 });
