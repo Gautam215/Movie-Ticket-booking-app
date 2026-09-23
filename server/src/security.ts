@@ -48,7 +48,7 @@ export function requireRoles(...roles: UserRole[]) {
 export const authCookie = () => ({
   httpOnly: true,
   secure: env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  sameSite: env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
   maxAge: 15 * 60 * 1000,
   path: '/',
 });
