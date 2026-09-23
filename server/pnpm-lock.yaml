@@ -11,6 +11,27 @@ importers:
       '@eventra/shared':
         specifier: file:../shared
         version: file:../shared
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
+      '@types/cookie-parser':
+        specifier: ^1.4.8
+        version: 1.4.10(@types/express@5.0.6)
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.19
+      '@types/express':
+        specifier: ^5.0.0
+        version: 5.0.6
+      '@types/jsonwebtoken':
+        specifier: ^9.0.7
+        version: 9.0.10
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.4
+      '@types/qrcode':
+        specifier: ^1.5.5
+        version: 1.5.6
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -45,27 +66,6 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
-      '@types/bcryptjs':
-        specifier: ^2.4.6
-        version: 2.4.6
-      '@types/cookie-parser':
-        specifier: ^1.4.8
-        version: 1.4.10(@types/express@5.0.6)
-      '@types/cors':
-        specifier: ^2.8.17
-        version: 2.8.19
-      '@types/express':
-        specifier: ^5.0.0
-        version: 5.0.6
-      '@types/jsonwebtoken':
-        specifier: ^9.0.7
-        version: 9.0.10
-      '@types/node':
-        specifier: ^22.10.5
-        version: 22.20.4
-      '@types/qrcode':
-        specifier: ^1.5.5
-        version: 1.5.6
       '@types/supertest':
         specifier: ^6.0.3
         version: 6.0.3
