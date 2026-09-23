@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+const optionalApiKey = z.preprocess(
+  value => value === '' ? undefined : value,
+  z.string().trim().min(1).optional(),
+);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
@@ -9,9 +14,9 @@ const envSchema = z.object({
   ACCESS_TOKEN_TTL: z.string().default('15m'),
   REFRESH_TOKEN_TTL: z.string().default('7d'),
   DEMO_MODE: z.enum(['true', 'false']).default('true').transform(value => value === 'true'),
-  GEMINI_API_KEY: z.string().min(1).optional(),
+  GEMINI_API_KEY: optionalApiKey,
   GEMINI_MODEL: z.string().trim().min(1).default('gemini-2.0-flash'),
-  TMDB_API_KEY: z.string().min(1).optional(),
+  TMDB_API_KEY: optionalApiKey,
 });
 
 export const env = envSchema.parse(process.env);
