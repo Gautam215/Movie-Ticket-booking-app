@@ -9,15 +9,26 @@ type HoldRecord = { id: string; userId: string; eventId: string; items: BookingI
 type PaymentRecord = PaymentIntent & { userId: string; idempotencyKey: string; bookingId?: string };
 type BookingRecord = Booking & { userId: string };
 
+export type StoreSnapshot = {
+  users: Array<[string, UserRecord]>;
+  events: Array<[string, EventRecord]>;
+  holds: Array<[string, HoldRecord]>;
+  payments: Array<[string, PaymentRecord]>;
+  bookings: Array<[string, BookingRecord]>;
+  tickets: Array<[string, Ticket]>;
+};
+
 const now = () => new Date().toISOString();
 
 export class MemoryStore {
+  readonly persistence: string = 'memory';
   readonly users = new Map<string, UserRecord>();
   readonly events = new Map<string, EventRecord>();
   readonly holds = new Map<string, HoldRecord>();
   readonly payments = new Map<string, PaymentRecord>();
   readonly bookings = new Map<string, BookingRecord>();
   readonly tickets = new Map<string, Ticket>();
+  private changeListener?: () => void;
 
   constructor() {
     const attendee = this.addUser({ name: 'Demo Attendee', email: 'demo@eventra.test', role: 'attendee', passwordHash: bcrypt.hashSync('DemoPass123!', 12) });
@@ -38,6 +49,40 @@ export class MemoryStore {
     ];
     seeded.forEach(event => this.events.set(event.id, event));
     void attendee;
+  }
+
+  setChangeListener(listener: () => void): void {
+    this.changeListener = listener;
+  }
+
+  createSnapshot(): StoreSnapshot {
+    return {
+      users: [...this.users.entries()],
+      events: [...this.events.entries()],
+      holds: [...this.holds.entries()],
+      payments: [...this.payments.entries()],
+      bookings: [...this.bookings.entries()],
+      tickets: [...this.tickets.entries()],
+    };
+  }
+
+  restore(snapshot: StoreSnapshot): void {
+    this.users.clear();
+    this.events.clear();
+    this.holds.clear();
+    this.payments.clear();
+    this.bookings.clear();
+    this.tickets.clear();
+    snapshot.users.forEach(([id, user]) => this.users.set(id, user));
+    snapshot.events.forEach(([id, event]) => this.events.set(id, event));
+    snapshot.holds.forEach(([id, hold]) => this.holds.set(id, hold));
+    snapshot.payments.forEach(([id, payment]) => this.payments.set(id, payment));
+    snapshot.bookings.forEach(([id, booking]) => this.bookings.set(id, booking));
+    snapshot.tickets.forEach(([id, ticket]) => this.tickets.set(id, ticket));
+  }
+
+  protected changed(): void {
+    this.changeListener?.();
   }
 
   private addUser(input: Omit<UserRecord, 'id' | 'verified'>): UserRecord {
@@ -63,7 +108,9 @@ export class MemoryStore {
 
   createUser(input: { name: string; email: string; passwordHash: string; role?: UserRole }): UserRecord {
     if (this.findUserByEmail(input.email)) throw conflict('An account with that email already exists');
-    return this.addUser({ ...input, role: input.role ?? 'attendee' });
+    const user = this.addUser({ ...input, role: input.role ?? 'attendee' });
+    this.changed();
+    return user;
   }
 
   listEvents(filters: { q?: string; category?: string; city?: string; page: number; pageSize: number }): { data: EventSummary[]; totalItems: number } {
@@ -99,6 +146,7 @@ export class MemoryStore {
       priceFrom: Math.min(...ticketTypes.map(ticket => ticket.price)),
     };
     this.events.set(event.id, event);
+    this.changed();
     return event;
   }
 
@@ -107,6 +155,7 @@ export class MemoryStore {
     const actor = this.getUser(actorId);
     if (actor.role !== 'admin' && event.organizerId !== actorId) throw unauthorized('You cannot publish this event');
     event.status = 'published';
+    this.changed();
     return event;
   }
 
@@ -118,8 +167,9 @@ export class MemoryStore {
         for (const item of hold.items) {
           const ticket = event.ticketTypes.find(type => type.id === item.ticketTypeId);
           if (ticket) ticket.available += item.quantity;
-        }
-        hold.status = 'released';
+      }
+      hold.status = 'released';
+      this.changed();
       }
     }
   }
@@ -139,6 +189,7 @@ export class MemoryStore {
     for (const item of normalizedItems) event.ticketTypes.find(type => type.id === item.ticketTypeId)!.available -= item.quantity;
     const hold: HoldRecord = { id: randomUUID(), userId, eventId, items: normalizedItems, expiresAt: Date.now() + 10 * 60 * 1000, status: 'active' };
     this.holds.set(hold.id, hold);
+    this.changed();
     return hold;
   }
 
@@ -159,6 +210,7 @@ export class MemoryStore {
     const amount = hold.items.reduce((total, item) => total + item.quantity * item.unitPrice, 0);
     const payment: PaymentRecord = { id: randomUUID(), userId, holdId, amount, currency: 'USD', status: 'created', idempotencyKey };
     this.payments.set(payment.id, payment);
+    this.changed();
     return payment;
   }
 
@@ -181,6 +233,7 @@ export class MemoryStore {
     payment.bookingId = booking.id;
     hold.status = 'consumed';
     event.attendees += tickets.length;
+    this.changed();
     return booking;
   }
 
@@ -208,6 +261,7 @@ export class MemoryStore {
     if (actorRole === 'organizer' && this.getEvent(ticket.eventId).organizerId !== actorId) throw forbidden('You cannot validate tickets for this event');
     if (ticket.redeemedAt) throw conflict('This ticket has already been redeemed', { redeemedAt: ticket.redeemedAt });
     ticket.redeemedAt = now();
+    this.changed();
     return ticket;
   }
 

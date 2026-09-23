@@ -90,7 +90,7 @@ export function createApp(store = new MemoryStore()) {
   const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 12, standardHeaders: 'draft-7', legacyHeaders: false });
 
   app.get('/api/health', (_request, response) => {
-    response.json({ ok: true, mode: 'demo', persistence: 'memory' });
+    response.json({ ok: true, mode: 'demo', persistence: store.persistence });
   });
 
   app.post('/api/help', asyncRoute(async (request, response) => {
